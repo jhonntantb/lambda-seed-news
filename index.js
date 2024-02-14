@@ -2,7 +2,7 @@ require('dotenv').config();
 const { DataSource } = require('typeorm');
 const newsSourceEntity = require('./model/news-source.entity');
 const assetEntity = require('./model/asset.entity');
-const { getNews } = require('./utils');
+const { getNews, newsMapper } = require('./utils');
 
 console.log('app', {
   host: process.env.DB_HOST,
@@ -39,13 +39,18 @@ const handler = async () => {
 
     const assets = await assetRepository.find();
 
-    const assetsPromise = assets.map((asset) =>
-      getNews(asset.symbol, asset.id)
-    );
+    const assetsPromise = assets.map((asset) => {
+      const symbol =
+        asset.symbol === 'BTC' || asset.symbol === 'ETH'
+          ? `CC:${asset.symbol}`
+          : asset.symbol;
+      return getNews(symbol, asset.id);
+    });
     const dataNews = await Promise.all(assetsPromise);
-    const pulsesToSave = dataNews.flat().filter((e) => e.description !== null);
-    console.log(pulsesToSave);
-    const newsInstances = pulsesToSave.map((news) =>
+    const newsToApi = dataNews.flat();
+    const newsToSave = newsMapper(newsToApi);
+
+    const newsInstances = newsToSave.map((news) =>
       pulseRepository.create(news)
     );
     await pulseRepository.save(newsInstances);
