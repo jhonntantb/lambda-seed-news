@@ -19,4 +19,11 @@ module.exports = new EntitySchema({
       type: 'varchar',
     },
   },
+  relations: {
+    assetType: {
+      target: 'AssetType',
+      type: 'many-to-one',
+      joinColumn: { name: 'type_id', referencedColumnName: 'id' },
+    },
+  },
 });

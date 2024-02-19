@@ -2,6 +2,7 @@ require('dotenv').config();
 const { DataSource } = require('typeorm');
 const newsSourceEntity = require('./model/news-source.entity');
 const assetEntity = require('./model/asset.entity');
+const assetType = require('./model/type.entity');
 const { getNews, newsMapper } = require('./utils');
 
 console.log('app', {
@@ -20,7 +21,7 @@ const handler = async () => {
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    entities: [newsSourceEntity, assetEntity],
+    entities: [newsSourceEntity, assetEntity, assetType],
     // ssl: {
     //   rejectUnauthorized: false,
     // },
@@ -34,16 +35,15 @@ const handler = async () => {
       console.error('Error during Data Source initialization', err);
     });
   try {
-    const pulseRepository = AppDataSource.getRepository('news_source');
+    const newsSourceRepository = AppDataSource.getRepository('news_source');
     const assetRepository = AppDataSource.getRepository('asset');
 
-    const assets = await assetRepository.find();
-
+    const assets = await assetRepository.find({
+      relations: ['assetType'],
+    });
     const assetsPromise = assets.map((asset) => {
       const symbol =
-        asset.symbol === 'BTC' || asset.symbol === 'ETH'
-          ? `CC:${asset.symbol}`
-          : asset.symbol;
+        asset.assetType.id === 3 ? `CC:${asset.symbol}` : asset.symbol;
       return getNews(symbol, asset.id);
     });
     const dataNews = await Promise.all(assetsPromise);
@@ -51,9 +51,9 @@ const handler = async () => {
     const newsToSave = newsMapper(newsToApi);
 
     const newsInstances = newsToSave.map((news) =>
-      pulseRepository.create(news)
+      newsSourceRepository.create(news)
     );
-    await pulseRepository.save(newsInstances);
+    await newsSourceRepository.save(newsInstances);
     const endTime = new Date();
 
     console.log(endTime - startTime);
