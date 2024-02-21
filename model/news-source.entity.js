@@ -27,6 +27,10 @@ module.exports = new EntitySchema({
     published_at: {
       type: 'date',
     },
+    status: {
+      type: 'varchar',
+      default: 'created',
+    },
   },
   relations: {
     assetId: {

@@ -5,14 +5,8 @@ const assetEntity = require('./model/asset.entity');
 const assetType = require('./model/type.entity');
 const { getNews, newsMapper } = require('./utils');
 
-console.log('app', {
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  username: process.env.DB_USERNAME,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-});
-const handler = async () => {
+const handler = async (event) => {
+  const id = event.id;
   const startTime = new Date();
   const AppDataSource = new DataSource({
     type: 'postgres',
