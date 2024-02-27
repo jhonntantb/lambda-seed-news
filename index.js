@@ -6,8 +6,9 @@ const assetType = require('./model/type.entity');
 const { getNews, newsMapper } = require('./utils');
 
 const handler = async (event) => {
-  const id = event.id;
-  const startTime = new Date();
+  const id = event?.queryStringParameters
+    ? event.queryStringParameters.id
+    : null;
   const AppDataSource = new DataSource({
     type: 'postgres',
     host: process.env.DB_HOST,
@@ -16,23 +17,21 @@ const handler = async (event) => {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     entities: [newsSourceEntity, assetEntity, assetType],
-    // ssl: {
-    //   rejectUnauthorized: false,
-    // },
+    ssl: {
+      rejectUnauthorized: false,
+    },
   });
-
-  await AppDataSource.initialize()
-    .then(() => {
-      console.log('Data Source has been initialized!');
-    })
-    .catch((err) => {
-      console.error('Error during Data Source initialization', err);
-    });
   try {
+    await AppDataSource.initialize();
+
     const newsSourceRepository = AppDataSource.getRepository('news_source');
     const assetRepository = AppDataSource.getRepository('asset');
-
+    let options;
+    if (id) {
+      options = { where: { id } };
+    }
     const assets = await assetRepository.find({
+      ...options,
       relations: ['assetType'],
     });
     const assetsPromise = assets.map((asset) => {
@@ -47,10 +46,11 @@ const handler = async (event) => {
     const newsInstances = newsToSave.map((news) =>
       newsSourceRepository.create(news)
     );
-    await newsSourceRepository.save(newsInstances);
-    const endTime = new Date();
-
-    console.log(endTime - startTime);
+    for (const newsInstance of newsInstances) {
+      try {
+        await newsSourceRepository.save(newsInstance, { transaction: true });
+      } catch (error) {}
+    }
   } catch (error) {
     console.log(error.message);
   }
