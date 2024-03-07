@@ -8,10 +8,30 @@ const day = String(currentDate.getDate()).padStart(2, '0');
 
 const dateResult = `${year}-${month}-${day}`;
 
+const typeCryptocurrencyId = 3;
+
+const getPreviousHour = () => {
+  const now = new Date();
+  const prevHour = new Date(now.getTime() - 60 * 60 * 1000);
+  const formatDate = (date) => {
+    const twoDigits = (num) => (num < 10 ? '0' : '') + num;
+    return (
+      date.getFullYear() +
+      '-' +
+      twoDigits(date.getMonth() + 1) +
+      '-' +
+      twoDigits(date.getDate()) +
+      'T' +
+      twoDigits(date.getHours())
+    );
+  };
+  return formatDate(prevHour);
+};
 const getNews = async (symbol, id) => {
-  const url1 = `${process.env.MARKET_AUX_URL}?api_token=${process.env.MARKET_AUX_API}&symbols=${symbol}&published_on=${dateResult}&language=en&filter_entities=true`;
-  const response1 = await axios.get(url1);
-  const news1 = response1.data.data.map((news) => {
+  const publishedAfter = getPreviousHour();
+  const marketauxUrl = `${process.env.MARKET_AUX_URL}?api_token=${process.env.MARKET_AUX_TOKEN}&symbols=${symbol}&published_after=${publishedAfter}&language=en&filter_entities=true`;
+  const allNews = await axios.get(marketauxUrl);
+  const news = allNews.data.data.map((news) => {
     return {
       source: news.source,
       url: news.url,
@@ -22,7 +42,7 @@ const getNews = async (symbol, id) => {
       status: 'created',
     };
   });
-  return news1;
+  return news;
 };
 
 const newsMapper = (arr) => {
@@ -41,4 +61,5 @@ module.exports = {
   dateResult,
   getNews,
   newsMapper,
+  typeCryptocurrencyId,
 };

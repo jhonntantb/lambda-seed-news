@@ -3,7 +3,7 @@ const { DataSource } = require('typeorm');
 const newsSourceEntity = require('./model/news-source.entity');
 const assetEntity = require('./model/asset.entity');
 const assetType = require('./model/type.entity');
-const { getNews, newsMapper } = require('./utils');
+const { getNews, newsMapper, typeCryptocurrencyId } = require('./utils');
 
 const handler = async (event) => {
   const id = event?.queryStringParameters
@@ -36,13 +36,14 @@ const handler = async (event) => {
     });
     const assetsPromise = assets.map((asset) => {
       const symbol =
-        asset.assetType.id === 3 ? `CC:${asset.symbol}` : asset.symbol;
+        asset.assetType.id === typeCryptocurrencyId
+          ? `CC:${asset.symbol}`
+          : asset.symbol;
       return getNews(symbol, asset.id);
     });
     const dataNews = await Promise.all(assetsPromise);
     const newsToApi = dataNews.flat();
     const newsToSave = newsMapper(newsToApi);
-
     const newsInstances = newsToSave.map((news) =>
       newsSourceRepository.create(news)
     );
