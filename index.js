@@ -34,12 +34,13 @@ const handler = async (event) => {
       ...options,
       relations: ['assetType'],
     });
+    const isNewAsset = id ? true : false;
     const assetsPromise = assets.map((asset) => {
       const symbol =
         asset.assetType.id === typeCryptocurrencyId
           ? `CC:${asset.symbol}`
           : asset.symbol;
-      return getNews(symbol, asset.id);
+      return getNews(symbol, asset.id, isNewAsset);
     });
     const dataNews = await Promise.all(assetsPromise);
     const newsToApi = dataNews.flat();
@@ -57,4 +58,9 @@ const handler = async (event) => {
   }
 };
 
+const event = {
+  queryStringParameters: {
+    id: 9,
+  },
+};
 handler();

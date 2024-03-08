@@ -27,9 +27,13 @@ const getPreviousHour = () => {
   };
   return formatDate(prevHour);
 };
-const getNews = async (symbol, id) => {
+const getNews = async (symbol, id, isNewAsset) => {
   const publishedAfter = getPreviousHour();
-  const marketauxUrl = `${process.env.MARKET_AUX_URL}?api_token=${process.env.MARKET_AUX_TOKEN}&symbols=${symbol}&published_after=${publishedAfter}&language=en&filter_entities=true`;
+  const marketauxUrl =
+    `${process.env.MARKET_AUX_URL}?api_token=${process.env.MARKET_AUX_TOKEN}&symbols=${symbol}&language=en&filter_entities=true&` +
+    (isNewAsset
+      ? `published_on=${dateResult}`
+      : `pusblished_after=${publishedAfter}`);
   const allNews = await axios.get(marketauxUrl);
   const news = allNews.data.data.map((news) => {
     return {
