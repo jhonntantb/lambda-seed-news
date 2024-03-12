@@ -33,7 +33,7 @@ const getNews = async (symbol, id, isNewAsset) => {
     `${process.env.MARKET_AUX_URL}?api_token=${process.env.MARKET_AUX_TOKEN}&symbols=${symbol}&language=en&filter_entities=true&` +
     (isNewAsset
       ? `published_on=${dateResult}`
-      : `pusblished_after=${publishedAfter}`);
+      : `published_after=${publishedAfter}`);
   const allNews = await axios.get(marketauxUrl);
   const news = allNews.data.data.map((news) => {
     return {

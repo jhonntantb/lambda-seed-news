@@ -17,9 +17,9 @@ const handler = async (event) => {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     entities: [newsSourceEntity, assetEntity, assetType],
-    ssl: {
-      rejectUnauthorized: false,
-    },
+    // ssl: {
+    //   rejectUnauthorized: false,
+    // },
   });
   try {
     await AppDataSource.initialize();
@@ -34,13 +34,12 @@ const handler = async (event) => {
       ...options,
       relations: ['assetType'],
     });
-    const isNewAsset = id ? true : false;
     const assetsPromise = assets.map((asset) => {
       const symbol =
         asset.assetType.id === typeCryptocurrencyId
-          ? `CC:${asset.symbol}`
+          ? `CC:${asset.symbol.split('/')[0]}`
           : asset.symbol;
-      return getNews(symbol, asset.id, isNewAsset);
+      return getNews(symbol, asset.id, id);
     });
     const dataNews = await Promise.all(assetsPromise);
     const newsToApi = dataNews.flat();
@@ -48,19 +47,15 @@ const handler = async (event) => {
     const newsInstances = newsToSave.map((news) =>
       newsSourceRepository.create(news)
     );
-    for (const newsInstance of newsInstances) {
-      try {
-        await newsSourceRepository.save(newsInstance, { transaction: true });
-      } catch (error) {}
-    }
+    await AppDataSource.createQueryBuilder()
+      .insert()
+      .into(newsSourceEntity)
+      .values(newsInstances)
+      .orIgnore()
+      .execute();
   } catch (error) {
     console.log(error.message);
   }
 };
 
-const event = {
-  queryStringParameters: {
-    id: 9,
-  },
-};
 handler();
