@@ -36,15 +36,17 @@ const getNews = async (symbol, id, isNewAsset) => {
       : `published_after=${publishedAfter}`);
   const allNews = await axios.get(marketauxUrl);
   const news = allNews.data.data.map((news) => {
-    return {
-      source: news.source,
-      url: news.url,
-      asset_id: id,
-      title: news.title,
-      published_at: news.published_at,
-      description: news.description,
-      status: 'created',
-    };
+    if (news.entities[0].match_score >= 20) {
+      return {
+        source: news.source,
+        url: news.url,
+        asset_id: id,
+        title: news.title,
+        published_at: news.published_at,
+        description: news.description,
+        status: 'created',
+      };
+    }
   });
   return news;
 };
@@ -52,7 +54,7 @@ const getNews = async (symbol, id, isNewAsset) => {
 const newsMapper = (arr) => {
   const urlUnique = {};
   const arrFiltering = arr.filter((el) => {
-    if (!urlUnique[el.url]) {
+    if (el && !urlUnique[el.url]) {
       urlUnique[el.url] = true;
       return true;
     }
