@@ -9,7 +9,7 @@ const day = String(currentDate.getDate()).padStart(2, '0');
 const dateResult = `${year}-${month}-${day}`;
 
 const typeCryptocurrencyId = 3;
-const oneHourInMilliseconds = 600 * 60 * 1000;
+const oneHourInMilliseconds = 60 * 60 * 1000;
 const matchScoreMin = 20;
 const getPreviousHour = () => {
   const now = new Date();

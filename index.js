@@ -5,7 +5,7 @@ const assetEntity = require('./model/asset.entity');
 const assetType = require('./model/type.entity');
 const { getNews, newsMapper, typeCryptocurrencyId } = require('./utils');
 
-const handler = async (event) => {
+exports.handler = async (event) => {
   const id = event?.queryStringParameters
     ? event.queryStringParameters.id
     : null;
@@ -17,9 +17,9 @@ const handler = async (event) => {
     password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
     entities: [newsSourceEntity, assetEntity, assetType],
-    // ssl: {
-    //   rejectUnauthorized: false,
-    // },
+    ssl: {
+      rejectUnauthorized: false,
+    },
   });
   try {
     await AppDataSource.initialize();
@@ -58,5 +58,3 @@ const handler = async (event) => {
     console.log(error.message);
   }
 };
-
-handler();
