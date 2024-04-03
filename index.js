@@ -34,6 +34,7 @@ const handler = async (event) => {
       ...options,
       relations: ['assetType'],
     });
+
     const assetsPromise = assets.map((asset) => {
       const symbol =
         asset.assetType.id === typeCryptocurrencyId

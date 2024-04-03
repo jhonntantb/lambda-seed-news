@@ -9,10 +9,11 @@ const day = String(currentDate.getDate()).padStart(2, '0');
 const dateResult = `${year}-${month}-${day}`;
 
 const typeCryptocurrencyId = 3;
-
+const oneHourInMilliseconds = 600 * 60 * 1000;
+const matchScoreMin = 20;
 const getPreviousHour = () => {
   const now = new Date();
-  const prevHour = new Date(now.getTime() - 60 * 60 * 1000);
+  const prevHour = new Date(now.getTime() - oneHourInMilliseconds);
   const formatDate = (date) => {
     const twoDigits = (num) => (num < 10 ? '0' : '') + num;
     return (
@@ -36,7 +37,7 @@ const getNews = async (symbol, id, isNewAsset) => {
       : `published_after=${publishedAfter}`);
   const allNews = await axios.get(marketauxUrl);
   const news = allNews.data.data.map((news) => {
-    if (news.entities[0].match_score >= 20) {
+    if (news.entities[0].match_score >= matchScoreMin) {
       return {
         source: news.source,
         url: news.url,
